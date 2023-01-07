@@ -51,8 +51,12 @@ void HaCClient::setup(uint16_t remotePort, const char * remoteIP)
     if(!soc)
         return;
     
-    if(remotePort < 0) 
+    if(remotePort <= 0) 
+    {   
+        DBG_CB_HSOC("[HACCLIENT] Invalid IP port!");
         return;
+    }
+        
     this->_remotePort = remotePort;
     
     if (!WiFi.hostByName(remoteIP, this->_remoteIP, 1000))

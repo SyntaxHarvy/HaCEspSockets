@@ -95,11 +95,13 @@ void setup() {
   haCSockets.Server_clientOnSocketClosed(Server_clientOnSocketClosed_CB);
   haCSockets.Server_clientOnSocketError(Server_clientOnError_CB);
   haCSockets.Server_clientOnPoll(Server_clientOnPoll_CB);
-  //haCSockets.setPingWatchdog(false);    // To Disable the ping watchdog
+  
   /* #endregion */ 
 
   /* #region  Setting up and starting the socket server */
-  haCSockets.setupServer(5000);   //Server setup
+  //Change your_server_port to actual port value
+  haCSockets.setupServer(your_server_port);   //Server setup
+  //haCSockets.setPingWatchdog(false);    // To Disable the ping watchdog
   haCSockets.startServer();       //Starting the server
   /* #endregion */ 
 

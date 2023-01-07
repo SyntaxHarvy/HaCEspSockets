@@ -48,6 +48,8 @@
 #ifndef HAC_SERVER_MAX_SOCKET_CLIENTS
 #define HAC_SERVER_MAX_SOCKET_CLIENTS   5
 #endif
+
+#define HAC_SERVER_DEF_PORT 5000
 /* #endregion */
 
 /* #region CLASS_DECLARATION */
@@ -74,7 +76,7 @@ class HaCServer
         
     private:
         bool _enablePingWatchdog = true;
-        uint16_t _port;
+        uint16_t _port = HAC_SERVER_DEF_PORT;
         tcp_pcb *_listenerSoc = nullptr;
         IPAddress _ipAddr;
         std::vector<HaCClientInfo*> _clientInfos = std::vector<HaCClientInfo*>();

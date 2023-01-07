@@ -67,7 +67,7 @@ void clientOnPoll_CB(HaCClientInfo * clientInfo);
 /* #endregion */ 
 
 /* #region Global Wifi Access Definition */
-const char* ssid = "myssid";           //Change this to your correct wifi ssid
+const char* ssid = "myssid";              //Change this to your correct wifi ssid
 const char* password =  "mypassword";     //Change this to your correct wifi password
 /* #endregion */ 
 
@@ -93,12 +93,14 @@ void setup() {
   haCSockets.clientOnSocketError(clientOnSocketError_CB);
   haCSockets.clientOnPoll(clientOnPoll_CB);
   haCSockets.clientOnSocketClosed(clientOnSocketClosed_CB);
-  haCSockets.clientOnConnected(clientOnConnected_CB);
+  haCSockets.clientOnConnected(clientOnConnected_CB);  
   /* #endregion */ 
 
   /* #region  Setting up and connecting with the client socket */
-  haCSockets.setupClient(5000, "10.0.0.58");      //Setting up client socket, setupClient(port, remote ip)
-  haCSockets.clientConnect();                     //Initiate connection to the server
+  //Change your_server_port to actual port value and your_server_ip to your actual server ip
+  haCSockets.setupClient(your_server_port, "your_server_ip");      
+  haCSockets.setPingWatchdog(false);                               // To Disable the ping watchdog
+  haCSockets.clientConnect();                                      //Initiate connection to the server
   /* #endregion */ 
 
 }
