@@ -1,7 +1,7 @@
 {
   "name": "HaCEspSockets",
   "keywords": "sockets, esp8266, mcu sockets",
-  "description": "An equivalent of windows socket in ESP(MCU) arduino environment. This library is an event driven with similar experience to windows socket.This library can also be implemented as a client or server depending on the use case of the user. The server socket can handle multiple client connection depending on the HAC_SERVER_MAX_SOCKET_CLIENTS definition(Note: Default value is 5 simultaneous client, it can be increase further but make sure to manage the memory it utilized for each session)",
+  "description": "An equivalent of windows socket in ESP(MCU) arduino environment. This library is an event driven with similar experience to windows socket.This library can also be implemented as a client or server depending on the use case of the user. The server socket can handle multiple client connection depending on the HAC_SERVER_MAX_SOCKET_CLIENTS definition(Note: Default value is 5 simultaneous client, it can be increase further but make sure to manage the memory it utilized for each session) ",
   "repository":
   {
     "type": "git",
