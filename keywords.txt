@@ -14,7 +14,35 @@ HaCEspSockets	KEYWORD1
 
 setup 	KEYWORD2
 loop 	KEYWORD2
+Server_clientOnDataArrival 	KEYWORD2
+Server_clientOnDataSent 	KEYWORD2
+Server_clientOnSocketError 	KEYWORD2
+Server_clientOnPoll 	KEYWORD2
+Server_clientOnSocketClosed 	KEYWORD2
+Server_onNewClientConnection 	KEYWORD2
+setupServer 	KEYWORD2
+startServer 	KEYWORD2
+shutdownServer 	KEYWORD2
+ServerBroadCast 	KEYWORD2
+setPingWatchdog 	KEYWORD2
+
+clientOnDataArrival 	KEYWORD2
+clientOnDataSent 	KEYWORD2
+clientOnSocketError 	KEYWORD2
+clientOnPoll 	KEYWORD2
+clientOnSocketClosed 	KEYWORD2
+clientOnConnected 	KEYWORD2
+
+setupClient 	KEYWORD2
+clientSend 	KEYWORD2
+clientConnect 	KEYWORD2
+clientClose 	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
+HAC_SERVER_MAX_SOCKET_CLIENTS   LITERAL1
+HAC_ENABLE_DEBUG    LITERAL1
+DBG_CB_HSOC    LITERAL1
+DBG_CB_HSOC2    LITERAL1
+HAC_SOCCLIENT_POLL_INTVAL_PING    LITERAL1

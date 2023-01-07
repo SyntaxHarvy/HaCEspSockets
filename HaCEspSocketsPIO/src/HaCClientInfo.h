@@ -34,7 +34,7 @@
 /* #endregion */
 
 /* #region INTERNAL_DEPENDENCY */
-//#include "HaCEspSockets.h"
+#include "HaCEspSockets.h"
 /* #endregion */
 
 /* #region EXTERNAL_DEPENDENCY */
