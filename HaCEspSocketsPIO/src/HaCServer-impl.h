@@ -217,23 +217,23 @@ long HaCServer::_accept(tcp_pcb* newSoc, long err)
         return ERR_ABRT;
     } 
 
-    this->_clientInfo = new HaCClientInfo(newSoc,[&](HaCClientInfo * clientInfo, tcp_pcb* soc)
+    this->_clientInfo = new HaCClientInfo(newSoc,[&](HaCClientInfo * clInfo, tcp_pcb* soc)
         {
             tcp_backlog_delayed(soc);
             tcp_backlog_accepted(soc);
-            this->_clientInfo->setPingWatchdog(this->_enablePingWatchdog);
-            this->_clientInfo->onReceive(this->_onReceiveFn);
-            this->_clientInfo->onSent(this->_onSentFn);
-            this->_clientInfo->onError(this->_onErrorFn);
-            this->_clientInfo->onPoll(this->_onPollFn);
+            clInfo->setPingWatchdog(this->_enablePingWatchdog);
+            clInfo->onReceive(this->_onReceiveFn);
+            clInfo->onSent(this->_onSentFn);
+            clInfo->onError(this->_onErrorFn);
+            clInfo->onPoll(this->_onPollFn);
 
-            clientInfo->onClosed(
+            clInfo->onClosed(
                 [&](HaCClientInfo * clientInfo)
                 {
                     this->_clientInfo_onClosed(clientInfo);
                 });
 
-            this->_clientInfo_onAccepted(clientInfo);
+            this->_clientInfo_onAccepted(clInfo);
         }
     );
 
