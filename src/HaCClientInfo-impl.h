@@ -364,7 +364,7 @@ long HaCClientInfo::_onPoll(struct tcp_pcb *tpcb)
           this->_pollingCounter = 0;
           long err = this->sendData("ping");
           tcp_output(this->_soc);
-          Serial.printf("\n[HACCLIENTINFO] Send Err = %lu this->_connectionSuccessCnter = %d this->_isSendingPing = %d \n",
+          Serial.printf("\n[HACCLIENTINFO] Send Err = %lu this->_connectionNotOkCntr = %d this->_isSendingPing = %d \n",
                err, this->_connectionNotOkCntr, this->_isRemoteEndNotOk);
 
           //If the sendData can't be acknowledge via the onSent event then isRemoteEndNotOk will
