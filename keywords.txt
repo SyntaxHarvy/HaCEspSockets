@@ -25,14 +25,12 @@ startServer 	KEYWORD2
 shutdownServer 	KEYWORD2
 ServerBroadCast 	KEYWORD2
 setPingWatchdog 	KEYWORD2
-
 clientOnDataArrival 	KEYWORD2
 clientOnDataSent 	KEYWORD2
 clientOnSocketError 	KEYWORD2
 clientOnPoll 	KEYWORD2
 clientOnSocketClosed 	KEYWORD2
 clientOnConnected 	KEYWORD2
-
 setupClient 	KEYWORD2
 clientSend 	KEYWORD2
 clientConnect 	KEYWORD2
