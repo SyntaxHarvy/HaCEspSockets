@@ -67,8 +67,8 @@ void clientOnPoll_CB(HaCClientInfo * clientInfo);
 /* #endregion */ 
 
 /* #region Global Wifi Access Definition */
-const char* ssid = "MyIOTNetA";           //Change this to your correct wifi ssid
-const char* password =  "xtrp@ss143";     //Change this to your correct wifi password
+const char* ssid = "myssid";           //Change this to your correct wifi ssid
+const char* password =  "mypassword";     //Change this to your correct wifi password
 /* #endregion */ 
 
 /* #region Buildng the setup Function */
