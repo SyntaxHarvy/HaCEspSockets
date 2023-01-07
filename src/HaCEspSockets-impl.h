@@ -109,10 +109,10 @@ void HaCEspSockets::ServerBroadCast(const char *message)
 bool HaCEspSockets::setPingWatchdog(bool enable)
 {
      if(this->_socketServer)
-          this->_socketServer->setPingWatchdog(enable);
+          return this->_socketServer->setPingWatchdog(enable);
 
      if(this->_socketClient)
-          this->_socketClient->setPingWatchdog(enable);
+          return this->_socketClient->setPingWatchdog(enable);
 
      return false;
 }
