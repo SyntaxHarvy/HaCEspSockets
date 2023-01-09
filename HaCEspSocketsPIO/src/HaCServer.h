@@ -78,7 +78,8 @@ class HaCServer
         bool _enablePingWatchdog = true;
         uint16_t _port = HAC_SERVER_DEF_PORT;
         tcp_pcb *_listenerSoc = nullptr;
-        IPAddress _ipAddr;
+        //IPAddress _ipAddr;
+        ip_addr_t *_ipAddr = nullptr;
         std::vector<HaCClientInfo*> _clientInfos = std::vector<HaCClientInfo*>();
         HaCClientInfo *_clientInfo = nullptr;
 
@@ -94,13 +95,8 @@ class HaCServer
         void _clientInfo_onAccepted(HaCClientInfo * clientInfo);
         /* #endregion */
 
-        long _accept(tcp_pcb* newpcb, long err);
-        static long _accept(void *arg, tcp_pcb* newpcb, long err);
-        //long _onReceive(struct tcp_pcb *tpcb,
-        //                struct pbuf *p, err_t err);
-        
-        //static long _onReceive(void *arg, struct tcp_pcb *tpcb,
-        //                       struct pbuf *p, err_t err);
+        err_t _accept(tcp_pcb* newpcb, err_t err);
+        static err_t _accept(void *arg, tcp_pcb* newpcb, err_t err);
 };
 
 

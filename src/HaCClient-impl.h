@@ -53,18 +53,19 @@ void HaCClient::setup(uint16_t remotePort, const char * remoteIP)
     
     if(remotePort <= 0) 
     {   
-        DBG_CB_HSOC("[HACCLIENT] Invalid IP port!");
+        DBG_CB_HSOC("[HACCLIENT] Invalid port!");
         return;
     }
-        
-    this->_remotePort = remotePort;
     
-    if (!WiFi.hostByName(remoteIP, this->_remoteIP, 1000))
+    ip_addr_t ip;
+    if(!this->_parseIP(remoteIP, &ip))
     {
-        DBG_CB_HSOC("[HACCLIENT] Invalid IP address!");
+        DBG_CB_HSOC("[HACCLIENT] Invalid IP!");
         return;
     }
     
+    this->_remotePort = remotePort;
+    this->_remoteIP = &ip;
     soc->remote_ip = *this->_remoteIP;
     soc->remote_port = this->_remotePort;
     
@@ -84,7 +85,61 @@ HaCClient::~HaCClient()
 
 /* #region Private */
 
+/**
+     * Parse string IP and convert it to ip_addr_t
+     * @param ipStr IP String
+     * @param ip Converted IP pointer
+     */
+bool HaCClient::_parseIP(const char *ipStr, ip_addr_t *ip) 
+{    
+    uint16_t octet[4] = {0, 0, 0, 0};
+    uint8_t i = 0;
+    uint8_t validOctetCntr = 0;
+    while(*ipStr)
+    {
+        if(!this->_isValidIPChar(*ipStr)) return false;   
+        uint16_t tmp = 0, digitNo = 0;        
+        bool isEnd = false;
+        while(*ipStr != '.')    
+        {
+            if(!*ipStr) 
+            {
+                isEnd = true;
+                break;              
+            }            
+            if(!this->_isValidIPChar(*ipStr)) return false;    
+            tmp = tmp * 10 + (*ipStr - '0');            
+            if(tmp > 255)
+                return false;             
+            digitNo++;
+            ipStr++;
+        }
+        if(digitNo < 3) validOctetCntr++;
+        octet[i] = tmp;            
+        i++;                    
 
+        if(isEnd)
+            break;
+        ipStr++;
+    }
+    if(validOctetCntr != 4)
+        return false;
+    
+    *ip = IPADDR4_INIT_BYTES(octet[0], octet[1], octet[2], octet[3]);
+
+    return true;     
+}
+
+/**
+     * Check if it is a valid IP char
+     * @param ipStr IP String
+     * @param ip Converted IP pointer
+     * @return True is the character is valid
+     */
+bool HaCClient::_isValidIPChar(char c)
+{
+    return ((c >= '0' && c <= '9') || c == '.');
+}
 
 /* #endregion */
 

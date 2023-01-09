@@ -41,6 +41,9 @@
 #include <Arduino.h>
 #include <lwip/tcp.h>
 #include <IPAddress.h>
+#ifdef ESP32
+#include<functional>
+#endif
 /* #endregion */
 
 /* #region GLOBAL_DECLARATION */
@@ -64,7 +67,12 @@ class HaCClientInfo
         uint8_t getConnectionId();
         
         bool setPingWatchdog(bool enable = true);
-        bool connect(IPAddress ip, uint16_t port);        
+        #ifdef ESP32  
+        bool connect(const ip_addr_t *ip, uint16_t port);        
+        #endif
+        #ifdef ESP8266
+        bool connect(IPAddress ip, uint16_t port);
+        #endif
         uint8_t socketState() const;
         long sendData(const char * buffer);
         void close(bool forceClose = false);
@@ -93,20 +101,21 @@ class HaCClientInfo
 
         void _setup();
 
-        static long _onReceive(void *arg, struct tcp_pcb *tpcb,
+        static err_t _onReceive(void *arg, struct tcp_pcb *tpcb,
                                struct pbuf *p, err_t err);
-        long _onReceive(struct tcp_pcb *tpcb,
+        err_t _onReceive(struct tcp_pcb *tpcb,
                         struct pbuf *p, err_t err);
-        long _onSent(struct tcp_pcb *tpcb,
+        err_t _onSent(struct tcp_pcb *tpcb,
                               u16_t len);
-        static long _onSent(void *arg, struct tcp_pcb *tpcb,
+        static err_t _onSent(void *arg, struct tcp_pcb *tpcb,
                               u16_t len);
         void _onError(err_t err);
         static void _onError(void *arg, err_t err);
-        long _onPoll(struct tcp_pcb *tpcb);
-        static long _onPoll(void *arg, struct tcp_pcb *tpcb);
-        long _connected(struct tcp_pcb *pcb, err_t err);
-        static long _connected(void* arg, struct tcp_pcb *pcb, err_t err);
+        err_t _onPoll(struct tcp_pcb *tpcb);
+        static err_t _onPoll(void *arg, struct tcp_pcb *tpcb);
+     
+        err_t _connected(struct tcp_pcb *pcb, err_t err);
+        static err_t _connected(void* arg, struct tcp_pcb *pcb, err_t err);
         
         
 };

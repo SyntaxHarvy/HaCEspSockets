@@ -34,13 +34,18 @@
 
 /* #region INTERNAL_DEPENDENCY */
 #include "HaCClientInfo.h"
-#include "ESP8266WiFi.h"
+//#include "ESP8266WiFi.h"
 /* #endregion */
 
 /* #region EXTERNAL_DEPENDENCY */
 #include <Arduino.h>
 #include <lwip/tcp.h>
 #include <IPAddress.h>
+
+#ifdef ESP32
+#include<functional>
+#endif
+
 /* #endregion */
 
 /* #region GLOBAL_DECLARATION */
@@ -98,8 +103,11 @@ public:
 
 private:    
     tcp_pcb *_soc = nullptr;
-    IPAddress _remoteIP;
+    ip_addr_t *_remoteIP = nullptr;
     uint16_t _remotePort;
+
+    bool _parseIP(const char *ipStr, ip_addr_t *ip);
+    bool _isValidIPChar(char c);
 
 };
 /* #endregion */
