@@ -1,10 +1,10 @@
 /**
  *
  * @file HaCEspSockets-impl.h
- * @date 29.12.2021
+ * @date 03.01.2023
  * @author Harvy Aronales Costiniano
  *
- * Copyright (c) 2021 Harvy Aronales Costiniano. All rights reserved.
+ * Copyright (c) 2023 Harvy Aronales Costiniano. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
