@@ -170,9 +170,40 @@ uint8_t HaCClientInfo::socketState() const
      */
 void HaCClientInfo::getRemoteIP(char *bufferIP) 
 {     
-     strcpy(bufferIP, &(IPAddress(this->_soc->remote_ip.addr).toString())[0]);
+     #if defined(ESP32)
+     ip4_addr_t ip = this->_soc->remote_ip.u_addr.ip4;
+     IPAddress ip2 = IPAddress(ip.addr);     
+     #elif defined(ESP8266)     
+     IPAddress ip2 = IPAddress(this->_soc->remote_ip);     
+     #endif     
+     
+     strcpy(bufferIP, &(ip2.toString())[0]);     
 }
 
+#ifdef ESP32  
+/**
+     * Connect to remote server
+     * @param ip address address of the remote host
+     * @param port port of the remot host
+     * @return True if connection is successful
+     */
+bool HaCClientInfo::connect(const ip_addr_t *ip, uint16_t port) 
+{
+     if(!this->_soc) return false;
+     //TO DO: Resolve host before proceeding
+     err_t err = tcp_connect(this->_soc, ip, port, &HaCClientInfo::_connected);
+     
+
+     if (err != ERR_OK) {
+          Serial.println(3);
+          return false;
+     }
+     
+     return true;     
+}
+#endif
+
+#ifdef ESP8266
 /**
      * Connect to remote server
      * @param ip address address of the remote host
@@ -183,8 +214,10 @@ bool HaCClientInfo::connect(IPAddress ip, uint16_t port)
 {
      if(!this->_soc) return false;
      //TO DO: Resolve host before proceeding
+     
      err_t err = tcp_connect(this->_soc, ip, port, &HaCClientInfo::_connected);
      
+
      if (err != ERR_OK) {
           Serial.println(3);
           return false;
@@ -192,6 +225,8 @@ bool HaCClientInfo::connect(IPAddress ip, uint16_t port)
      
      return true;     
 }
+#endif
+
 
 
 /**
@@ -271,7 +306,7 @@ void HaCClientInfo::_setup()
      * @param err Socket error state
      * @return Socket error state
      */
-long HaCClientInfo::_onReceive(struct tcp_pcb *tpcb,
+err_t HaCClientInfo::_onReceive(struct tcp_pcb *tpcb,
                              struct pbuf *p, err_t err)
 { 
      
@@ -330,7 +365,7 @@ long HaCClientInfo::_onReceive(struct tcp_pcb *tpcb,
      * @param len Data sent size
      * @return Socket error state
      */
-long HaCClientInfo::_onSent(struct tcp_pcb *tpcb,
+err_t HaCClientInfo::_onSent(struct tcp_pcb *tpcb,
                               u16_t len)
 {
      this->_isRemoteEndNotOk = false;
@@ -356,7 +391,7 @@ void HaCClientInfo::_onError(err_t err)
      * @param tpcp Remote Client Socket Pointer
      * @return Socket error state
      */
-long HaCClientInfo::_onPoll(struct tcp_pcb *tpcb)
+err_t HaCClientInfo::_onPoll(struct tcp_pcb *tpcb)
 {
 
      if(this->_pollingCounter > HAC_SOCCLIENT_POLL_INTVAL_PING && this->_enablePingWatchdog)
@@ -407,7 +442,7 @@ long HaCClientInfo::_onPoll(struct tcp_pcb *tpcb)
      * @return Socket error state
      */
 
-long HaCClientInfo::_connected(struct tcp_pcb *pcb, err_t err)
+err_t HaCClientInfo::_connected(struct tcp_pcb *pcb, err_t err)
 {
     if(this->_onConnectedFn)
         this->_onConnectedFn(this);
@@ -423,7 +458,7 @@ long HaCClientInfo::_connected(struct tcp_pcb *pcb, err_t err)
      * @param err Socket error state
      * @return Socket error state
      */
-long HaCClientInfo::_onReceive(void *arg, struct tcp_pcb *tpcb,
+err_t HaCClientInfo::_onReceive(void *arg, struct tcp_pcb *tpcb,
                              struct pbuf *p, err_t err)
 {
     return reinterpret_cast<HaCClientInfo*>(arg)->_onReceive(tpcb, p, err); 
@@ -435,7 +470,7 @@ long HaCClientInfo::_onReceive(void *arg, struct tcp_pcb *tpcb,
      * @param tpcp Remote Client Socket Pointer
      * @return Socket error state
      */
-long HaCClientInfo::_onSent(void *arg, struct tcp_pcb *tpcb,
+err_t HaCClientInfo::_onSent(void *arg, struct tcp_pcb *tpcb,
                               u16_t len)
 {
     return reinterpret_cast<HaCClientInfo*>(arg)->_onSent(tpcb, len); 
@@ -457,7 +492,7 @@ void HaCClientInfo::_onError(void *arg, err_t err)
      * @param tpcp Remote Client Socket Pointer
      * @return Socket error state
      */
-long HaCClientInfo::_onPoll(void *arg, struct tcp_pcb *tpcb)
+err_t HaCClientInfo::_onPoll(void *arg, struct tcp_pcb *tpcb)
 {
     return reinterpret_cast<HaCClientInfo*>(arg)->_onPoll(tpcb); 
 }
@@ -469,7 +504,7 @@ long HaCClientInfo::_onPoll(void *arg, struct tcp_pcb *tpcb)
      * @param err Socket error state
      * @return Socket error state
      */
-long HaCClientInfo::_connected(void* arg, struct tcp_pcb *pcb, err_t err)
+err_t HaCClientInfo::_connected(void* arg, struct tcp_pcb *pcb, err_t err)
 {
     return reinterpret_cast<HaCClientInfo*>(arg)->_connected(pcb, err);
 }

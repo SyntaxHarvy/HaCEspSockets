@@ -1,10 +1,10 @@
 /**
  *
  * @file HaCServices-impl
- * @date 03.01.2023
+ * @date 29.12.2021
  * @author Harvy Aronales Costiniano
  *
- * Copyright (c) 2023 Harvy Aronales Costiniano. All rights reserved.
+ * Copyright (c) 2021 Harvy Aronales Costiniano. All rights reserved.
  *
  * This library is free software; you can redisocstribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,8 +64,8 @@ bool HaCServer::setPingWatchdog(bool enable)
      */
 void HaCServer::setup(uint16_t port) 
 {    
-    this->_port = port;
-    this->_ipAddr = IP_ANY_TYPE;
+    this->_port = port;   
+    this->_ipAddr = (ip_addr_t *)IP_ANY_TYPE;    
 }
 
 /**
@@ -205,9 +205,9 @@ void HaCServer::onNewConnection(std::function<void(HaCClientInfo*, std::vector<H
      * @param err Socket error State
      * @return Socket error State
      */
-long HaCServer::_accept(tcp_pcb* newSoc, long err)
+err_t HaCServer::_accept(tcp_pcb* newSoc, err_t err)
 {
-    //Check if the connection is on the limit
+    //Check if the connection is on the limit    
     if(this->_clientInfos.size() >= HAC_SERVER_MAX_SOCKET_CLIENTS)
     {
         //Refuse the new connection
@@ -248,7 +248,7 @@ long HaCServer::_accept(tcp_pcb* newSoc, long err)
      * @param err Socket error State
      * @return Socket error State
      */
-long HaCServer::_accept(void *arg, tcp_pcb* newSoc, long err)
+err_t HaCServer::_accept(void *arg, tcp_pcb* newSoc, err_t err)
 {
     return reinterpret_cast<HaCServer*>(arg)->_accept(newSoc, err); 
 }

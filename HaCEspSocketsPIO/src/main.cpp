@@ -14,57 +14,58 @@
 */
 #include <Arduino.h>
 #include <HaCEspSockets.h>
-#include "ESP8266WiFi.h"
+#include <ESP8266WiFi.h>
+#include <HaCTimers.h>
 /* #endregion */
 
 /* #region Instantiate the library */
 HaCEspSockets haCSockets;
+HACTimers gHACTimers;
 /* #endregion */ 
 
 /* #region Declaration of Callback Function Prototypes */
     /**
-     * On New Client Connection Callback Function Prototype.
+     * On Data Arrival Callback Function Prototype.
      * @param clientInfo HaCClientInfo unique pointer for each client connection
      * @param buffer Data buffer receive by the server from the remote end client
      * @param packLen Data packet length
      * @param totalLen Buffer total length
-     */     
-void Server_clientOnDataArrival_CB(HaCClientInfo * clientInfo, 
-    const char* buffer, uint16_t packLen, uint32_t totalLen);  
+     */
+void clientOnDataArrival_CB(HaCClientInfo* clientInfo, 
+  const char* buffer, uint16_t packetLength, uint32_t totalLength);    
     
     /**
-     * On Data Arrival Callback Function Prototype.
+     * On Connected Callback Function Prototype.
      * @param clientInfo HaCClientInfo unique pointer for each client connection
      * @param clientInfos Array vectors of the HaCClientInfo connected to the server
      */
-void Server_onNewClientConnection_CB(HaCClientInfo * clientInfo, std::vector<HaCClientInfo*> clientInfos);   
-   
+void clientOnConnected_CB(HaCClientInfo * clientInfo);
+    
     /**
      * On Data Sent Callback Function Prototype.
      * @param len Data packet length sent to the client
      * @param clientInfo HaCClientInfo unique pointer for each client connection
      */
-void Server_clientOnDataSent_CB(uint16_t len, HaCClientInfo * clientInfo);
-
+void clientOnDataSent_CB(uint16_t len, HaCClientInfo * clientInfo);
+    
     /**
      * On Socket Closed Callback Function Prototype.     
-     * @param clientInfo HaCClientInfo unique pointer for each client connection
-     * @param clientInfos Array vectors of the HaCClientInfo connected to the server
+     * @param clientInfo HaCClientInfo unique pointer for each client connection     
      */    
-void Server_clientOnSocketClosed_CB(HaCClientInfo * clientInfo, std::vector<HaCClientInfo*> clientInfos);
-
+void clientOnSocketClosed_CB(HaCClientInfo * clientInfo);
+    
     /**
      * On Socket Error Callback Function Prototype.     
      * @param err Socket error for the associated client connection
      * @param clientInfos Array vectors of the HaCClientInfo connected to the server
      */
-void Server_clientOnError_CB(uint32_t err, HaCClientInfo * clientInfo);
+void clientOnSocketError_CB(uint32_t err, HaCClientInfo * clientInfo);
 
     /**
      * On Poll Callback Function Prototype.     
      * @param clientInfos Array vectors of the HaCClientInfo connected to the server
      */
-void Server_clientOnPoll_CB(HaCClientInfo * clientInfo);
+void clientOnPoll_CB(HaCClientInfo * clientInfo);
 /* #endregion */ 
 
 /* #region Global Wifi Access Definition */
@@ -78,6 +79,19 @@ void setup() {
   Serial.begin(115200);  
   delay(1000);
 
+  gHACTimers.onTickTack([&]
+  (){
+
+    char msg[100];
+    memset(msg, '\0', 100);
+    sprintf(msg, "Heaps = %u \n", ESP.getFreeHeap());
+
+    DBG_CB_HSOC(&msg[0]);
+    haCSockets.clientSend(&msg[0]);
+    
+  });
+
+
 
   WiFi.begin(ssid, password);
  
@@ -88,27 +102,33 @@ void setup() {
   DBG_CB_HSOC2("[Main] Connected to WiFi. IP: %s \n", WiFi.localIP().toString().c_str())
   /* #endregion */ 
 
+  gHACTimers.setup(2000); 
+  gHACTimers.begin();
+
+
   /* #region HaCEspSockets events initialization */
-  haCSockets.Server_onNewClientConnection(Server_onNewClientConnection_CB);
-  haCSockets.Server_clientOnDataArrival(Server_clientOnDataArrival_CB);
-  haCSockets.Server_clientOnDataSent(Server_clientOnDataSent_CB);
-  haCSockets.Server_clientOnSocketClosed(Server_clientOnSocketClosed_CB);
-  haCSockets.Server_clientOnSocketError(Server_clientOnError_CB);
-  haCSockets.Server_clientOnPoll(Server_clientOnPoll_CB);
-  
+  haCSockets.clientOnDataArrival(clientOnDataArrival_CB);
+  haCSockets.clientOnDataSent(clientOnDataSent_CB);
+  haCSockets.clientOnSocketError(clientOnSocketError_CB);
+  haCSockets.clientOnPoll(clientOnPoll_CB);
+  haCSockets.clientOnSocketClosed(clientOnSocketClosed_CB);
+  haCSockets.clientOnConnected(clientOnConnected_CB);  
   /* #endregion */ 
 
-  /* #region  Setting up and starting the socket server */
-  //Change your_server_port to actual port value
-  haCSockets.setupServer(your_server_ip);   //Server setup
-  haCSockets.setPingWatchdog(false);    // To Disable the ping watchdog
-  haCSockets.startServer();       //Starting the server
+  /* #region  Setting up and connecting with the client socket */
+  //Change your_server_port to actual port value and your_server_ip to your actual server ip
+  haCSockets.setupClient(5000, "10.0.0.58");                       //Replace port and IP with your server IP & Port     
+  haCSockets.setPingWatchdog(false);                               //To Disable the ping watchdog
+  haCSockets.clientConnect();                                      //Initiate connection to the server
   /* #endregion */ 
 
 }
 /* #endregion */ 
 
-void loop() {}
+void loop() 
+{
+  gHACTimers.handle();
+}
 
 /* #region Definition of Callback Function Prototypes */
 
@@ -119,79 +139,85 @@ void loop() {}
      * @param packLen Data packet length
      * @param totalLen Buffer total length
      */
-void Server_clientOnDataArrival_CB(HaCClientInfo * clientInfo, 
-    const char* buffer, uint16_t packLen, uint32_t totalLen)
+void clientOnDataArrival_CB(HaCClientInfo* clientInfo, const char* data, uint16_t packetLength, uint32_t totalLength)
 {
+  char ip[50];
+  memset(ip, 0, 50);
+  clientInfo->getRemoteIP(ip);
+  Serial.printf("\n[Main] Remote IP = %s ", &ip[0]);
+  Serial.printf("\n[Main] Data receive = %s ", &data[0]);
 
-    DBG_CB_HSOC2("\n[Main] Incoming data from client connection id = %d", clientInfo->getConnectionId()); 
-    DBG_CB_HSOC2("\n[Main] Data receive = %s", buffer);
-    DBG_CB_HSOC2("\n[Main] Packet length = %d ", packLen);
-    DBG_CB_HSOC2("\n[Main] Total Data length = %lu ", (unsigned long)totalLen);
-    
-    if(strcmp(buffer, "close") == 0)    //If data receive is equal to close
-      clientInfo->close();              //Close the existing client
-    if(strcmp(buffer, "send_all") == 0)    
-        haCSockets.ServerBroadCast("[SERVER] I am instructed to broadcast a message, how are you today?");
-    if(strcmp(buffer, "close_all") == 0)    
-        haCSockets.ServerBroadCast("close");
+  if(strcmp(data, "close") == 0)  //If data receive is equal to close
+    haCSockets.clientClose();     //Close the connection to the server
 }
 
 /**
-     * On New Client Connection Callback Function.
+     * On Connected Callback Function.
      * @param clientInfo HaCClientInfo unique pointer for each client connection
-     * @param clientInfos Array vectors of the HaCClientInfo connected to the server
      */
-void Server_onNewClientConnection_CB(HaCClientInfo * clientInfo, std::vector<HaCClientInfo*> clientInfos)
-{
-  DBG_CB_HSOC2("\n[Main] New Client with connection id = %d has been accepted..\n", clientInfo->getConnectionId());
+void clientOnConnected_CB(HaCClientInfo * clientInfo)
+{     
+  char ip[50];
+  memset(ip, 0, 50);
+  clientInfo->getRemoteIP(ip);
 
-  DBG_CB_HSOC("[Main] Active Connections \n");
-  for(auto p : clientInfos)
-    DBG_CB_HSOC2("\n[Main] Client with connection id = %d", p->getConnectionId());
+  DBG_CB_HSOC2("\n[Main] Client is connected to remote ip = %s", &ip[0]);  
+  haCSockets.clientSend("From client");
 }
 
 /**
-     * On Data Sent Callback Function.
+     * On Data Sent Callback Function Prototype.
      * @param len Data packet length sent to the client
      * @param clientInfo HaCClientInfo unique pointer for each client connection
      */
-void Server_clientOnDataSent_CB(uint16_t len, HaCClientInfo * clientInfo)
+void clientOnDataSent_CB(uint16_t len, HaCClientInfo * clientInfo)
 {
-  DBG_CB_HSOC2("\n[Main] Sent to the client = %d with total length = %lu ..", clientInfo->getConnectionId(), (unsigned long)len);  
-}
-
-/**
-     * On Socket Closed Callback Function.     
-     * @param clientInfo HaCClientInfo unique pointer for each client connection
-     * @param clientInfos Array vectors of the HaCClientInfo connected to the server
-     */
-void Server_clientOnSocketClosed_CB(HaCClientInfo * clientInfo, std::vector<HaCClientInfo*> clientInfos)
-{
-  DBG_CB_HSOC2("\n[Main] Client with connection id = %d has been closed \n", clientInfo->getConnectionId());
-
-  DBG_CB_HSOC("[Main] Active Connections:");
-  for(auto p : clientInfos)
-    DBG_CB_HSOC2("\n[Main] Client with connection id = %d", p->getConnectionId());
+  char ip[50];
+  memset(ip, 0, 50);
+  clientInfo->getRemoteIP(ip);
   
+  DBG_CB_HSOC2("\n[Main] Sent to the server = %s with total length = %lu ..", &ip[0], (unsigned long)len);  
 }
 
 /**
-     * On Socket Error Callback Function.     
+     * On Socket Closed Callback Function Prototype.     
+     * @param clientInfo HaCClientInfo unique pointer for each client connection     
+     */    
+void clientOnSocketClosed_CB(HaCClientInfo * clientInfo)
+{
+  char ip[50];
+  memset(ip, 0, 50);
+  clientInfo->getRemoteIP(ip);
+
+  DBG_CB_HSOC2("\n[Main] Client has been disconnected from remote ip = %s", &ip[0]);  
+}
+
+/**
+     * On Socket Error Callback Function Prototype.     
      * @param err Socket error for the associated client connection
      * @param clientInfos Array vectors of the HaCClientInfo connected to the server
      */
-void Server_clientOnError_CB(uint32_t err, HaCClientInfo * clientInfo)
+void clientOnSocketError_CB(uint32_t err, HaCClientInfo * clientInfo)
 {
-  DBG_CB_HSOC2("\n[Main] Client = %d, has error = %lu ..", clientInfo->getConnectionId(), (unsigned long)err);
+  char ip[50];
+  memset(ip, 0, 50);
+  clientInfo->getRemoteIP(ip);
+
+  DBG_CB_HSOC2("\n[Main] Client connecting to remote ip = %s has an error = %lu ..", &ip[0], (unsigned long)err);  
 }
 
 /**
      * On Poll Callback Function Prototype.     
      * @param clientInfos Array vectors of the HaCClientInfo connected to the server
      */
-void Server_clientOnPoll_CB(HaCClientInfo * clientInfo)
+void clientOnPoll_CB(HaCClientInfo * clientInfo)
 {
-  //DBG_CB_HSOC2("\n Client with connection id = %d is polling..", clientInfo->getConnectionId());
-}
+  //Take note that this event will be fire every 1 second once the connection to the server 
+  //will be established
+  char ip[50];
+  memset(ip, 0, 50);
+  clientInfo->getRemoteIP(ip);
 
+  //DBG_CB_HSOC2("\nClient is polling from remote ip = %s", &ip[0]);  
+}
 /* #endregion */ 
